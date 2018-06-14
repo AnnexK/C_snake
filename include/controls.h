@@ -9,7 +9,7 @@
 
 int gameLoop(WindowHandle **wins, void *data)
 {
-    halfdelay(10);
+    wtimeout(wins[0]->wptr, 250);
 
     GameData *gd = data;
 

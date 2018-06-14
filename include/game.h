@@ -57,7 +57,7 @@ void initcurses(void)
     initscr();
     cbreak();
     noecho();
-
+	
     int y, x;
     getmaxyx(stdscr, y, x);
 
@@ -67,7 +67,8 @@ void initcurses(void)
     Game.win[1]->display = display_aux_game;
 
     keypad(Game.win[0]->wptr, TRUE);
-    
+    //nodelay(Game.win[0]->wptr, TRUE);
+	
     Game.gamedata = malloc(sizeof(GameData));
     Game.gamedata->S = createSnake();
     Game.gamedata->score = 0;
