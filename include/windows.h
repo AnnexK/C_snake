@@ -1,0 +1,55 @@
+#ifndef SNAKE_H_WINDOWS
+#define SNAKE_H_WINDOWS
+
+#include <curses.h>
+#include "game.h"
+#include "snake.h"
+
+typedef struct winhandle
+{
+    WINDOW *wptr;
+    unsigned w, h, y, x;
+    void (*display)(struct winhandle *, void *);
+} WindowHandle;
+
+WindowHandle *setwin(unsigned h, unsigned w, unsigned y, unsigned x)
+{
+    WindowHandle *ret = malloc(sizeof(WindowHandle));
+    
+    ret->wptr = newwin(w, h, y, x);
+    ret->w = w;
+    ret->h = h;
+    ret->y = y;
+    ret->x = x;
+
+    return ret;
+}
+
+void display_aux_game(WindowHandle *this, void *data)
+{
+    int y, x;
+    getmaxyx(this->wptr, y, x);
+    werase(this->wptr);
+    GameData *gd = data;
+    mvwprintw(this->wptr, 1, 0, "Coords of food: %u %u", gd->food.y, gd->food.x,
+	      gd->S->snk->head->d->y, gd->S->snk->head->d->x);
+    mvwprintw(this->wptr, 0, 0, "Snake Demo\tScore: %u", gd->score);
+    wrefresh(this->wptr);
+}
+
+void display_main_game(WindowHandle *this, void *data)
+{
+    werase(this->wptr);
+    wborder(this->wptr, '#', '#', '#','#','#','#','#','#');
+    GameData *gd = (GameData *)data;
+   
+    mvwaddch(this->wptr, gd->food.y, gd->food.x, '*');
+    for (dnptr cell = gd->S->snk->head; cell; cell = cell->next)
+    {
+	mvwaddch(this->wptr, cell->d->y, cell->d->x, 'o');
+    }
+    
+    wrefresh(this->wptr);
+}
+
+#endif
