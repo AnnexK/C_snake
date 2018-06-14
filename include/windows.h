@@ -27,12 +27,9 @@ WindowHandle *setwin(unsigned h, unsigned w, unsigned y, unsigned x)
 
 void display_aux_game(WindowHandle *this, void *data)
 {
-    int y, x;
-    getmaxyx(this->wptr, y, x);
     werase(this->wptr);
     GameData *gd = data;
-    mvwprintw(this->wptr, 1, 0, "Coords of food: %u %u", gd->food.y, gd->food.x,
-	      gd->S->snk->head->d->y, gd->S->snk->head->d->x);
+
     mvwprintw(this->wptr, 0, 0, "Snake Demo\tScore: %u", gd->score);
     wrefresh(this->wptr);
 }
