@@ -70,7 +70,8 @@ void initcurses(void)
     //nodelay(Game.win[0]->wptr, TRUE);
 	
     Game.gamedata = malloc(sizeof(GameData));
-    Game.gamedata->S = createSnake();
+    Game.gamedata->create = createSnake;
+    Game.gamedata->delete = deleteSnake;
     Game.gamedata->score = 0;
     Game.gamedata->mv = moveSnake;
     Game.gamedata->grow = growSnake;
@@ -80,7 +81,6 @@ void initcurses(void)
     Game.gamedata->fieldX = Game.win[0]->h;
     
     Game.gamedata->genfood = generateFood;
-    Game.gamedata->genfood(Game.gamedata);
 }
 
 int exitcurses(void)
@@ -90,7 +90,6 @@ int exitcurses(void)
     free(Game.win[0]);
     free(Game.win[1]);
 
-    deleteSnake(Game.gamedata->S);
     free(Game.gamedata);
     endwin();
 

@@ -24,6 +24,9 @@ typedef struct gd
     Snake *S;
     data food;
 
+    Snake *(*create)(void);
+    void (*delete)(Snake *);
+    
     void (*mv)(Snake *);
     void (*grow)(Snake *);
     int (*checkcol)(struct gd *);

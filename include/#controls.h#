@@ -7,21 +7,17 @@
 #include "windows.h"
 
 
-int gameLoop(WindowHandle **wins, void *data)
+int gameLoop(void)
 {
-    wtimeout(wins[0]->wptr, 1000); //ncurses
-    GameData *gd = data;
+    wtimeout(Game.wins[0]->wptr, 250);
 
-    gd->S = gd->create();
-    gd->genfood(gd);
-    
     int retval;
     vector curmov;
     
-    while (!(retval = gd->checkcol(gd)))
+    while (!(retval = Game.gd->checkcol(gd)))
     {
-        wins[0]->display(wins[0], gd);
-	wins[1]->display(wins[1], gd);
+        wins[0]->display(wins[0], Game.gd);
+	wins[1]->display(wins[1], Game.gd);
 	
         curmov.x = 0;
 	curmov.y = 0;
@@ -62,12 +58,10 @@ int gameLoop(WindowHandle **wins, void *data)
     nocbreak();
     cbreak();
 
-    werase(wins[1]->wptr);
-    mvwprintw(wins[1]->wptr, 0, 0, "Game over! Your score: %u", gd->score);
-    wrefresh(wins[1]->wptr);
-    wgetch(wins[1]->wptr);
-
-    gd->delete(gd->S);
+    werase(Game.win[1]->wptr);
+    mvwprintw(Game.win[1]->wptr, 0, 0, "Game over! Your score: %u", Game.gamedata->score);
+    wrefresh(Game.win[1]->wptr);
+    wgetch(Game.win[1]->wptr);
     
     return retval;
 }
