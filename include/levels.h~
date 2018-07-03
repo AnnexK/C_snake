@@ -1,0 +1,92 @@
+#ifndef SNAKE_H_LEVELS
+#define SNAKE_H_LEVELS
+
+#include "deque.h"
+
+#define LFIELDSIZE 30
+
+typedef struct
+{
+    char name[LFIELDSIZE + 1];
+    char author[LFIELDSIZE + 1];
+    unsigned lvy, lvx;
+    unsigned ncells;
+    data *cells;
+    unsigned snkncells;
+    data *snkcells;
+} Level;
+
+unsigned hash(char *str)
+{
+    unsigned ret = 0;
+    unsigned mul = 7;
+    while (*str)
+    {
+	ret += *str * mul;
+	str++;
+    }
+    return ret;
+}
+
+int outOfBounds(data *cells, unsigned ncells, unsigned maxy, unsigned maxx)
+{
+    for (unsigned i = 0; i < ncells; i++)
+    {
+	if (cells[i].y >= maxy || cells[i].x >= maxx)
+	    return 1;
+    }
+    return 0;
+}
+
+int intersect(data *b, data *s, unsigned nb, unsigned ns)
+{
+    for (int i = 0; i < )
+}
+Level *readLevel(char *filename)
+{
+    FILE *read = fopen(filename, "rb");
+    if (!read) return NULL;
+
+    char *buf = malloc(9);
+    unsigned ubuf;
+    
+    fread(buf, sizeof(char), 9, read);        
+    
+    if (buf[8] || hash(buf) != hash("TEMILSNK"))
+    {
+	free(buf);
+	return NULL;
+    }
+
+    Level *ret = malloc(sizeof(Level));
+    
+    buf = realloc(buf, LFIELDSIZE + 1);
+    buf[LFIELDSIZE] = 0;
+    
+    fread(buf, sizeof(char), LFIELDSIZE, read);
+    strcpy(ret->name, buf);
+    fread(buf, sizeof(char), LFIELDSIZE, read);
+    strcpy(ret->author, buf);
+    
+    free(buf);
+
+    fread(&ubuf, sizeof(unsigned), 1, read);
+    ret->lvy = ubuf;
+    fread(&ubuf, sizeof(unsigned), 1, read);
+    ret->lvx = ubuf;
+    
+    fread(&ubuf, sizeof(unsigned), 1, read);
+    ret->ncells = ubuf;
+    ret->cells = malloc(ret->ncells * sizeof(data));
+    fread(&(ret->cells), sizeof(data), ret->ncells, read);
+
+    fread(&ubuf, sizeof(unsigned), 1, read);
+    ret->snkncells = ubuf;
+    ret->snkcells = malloc(ret->snkncells * sizeof(data));
+    fread(&(ret->snkcells), sizeof(data), ret->snkncells, read);
+    
+    if (feof(read))
+    {
+	free()
+    }
+}

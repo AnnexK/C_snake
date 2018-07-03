@@ -6,7 +6,7 @@
 
 typedef struct
 {
-    unsigned y, x;
+    int y, x;
 } data;
 
 struct _deqnode;

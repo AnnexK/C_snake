@@ -12,7 +12,7 @@ int gameLoop(WindowHandle **wins, void *data)
     wtimeout(wins[0]->wptr, 1000); //ncurses
     GameData *gd = data;
 
-    gd->S = gd->create();
+    gd->S = gd->create(gd);
     gd->genfood(gd);
     
     int retval;
@@ -50,12 +50,12 @@ int gameLoop(WindowHandle **wins, void *data)
 	    gd->S->direction.x = curmov.x;
 	}
 
-	gd->mv(gd->S);
+	gd->mv(gd);
 	if (gd->S->snk->head->d->y == gd->food.y && gd->S->snk->head->d->x == gd->food.x)
 	{
 	    gd->grow(gd->S);
-	    gd->genfood(gd);
 	    gd->score += 10;
+	    if (retval = gd->genfood(gd)) break;
 	}
     }
 

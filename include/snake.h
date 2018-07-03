@@ -3,17 +3,21 @@
 
 #include <stdlib.h>
 #include <math.h>
+
 #include "deque.h"
+#include "levels.h"
+
+#define DOTPR(vec1, vec2) ((vec1).y * (vec2).y + (vec1).x * (vec2).x)
 
 typedef struct
 {
-    signed y, x;    
+    int y, x;    
 } vector;
 
 typedef struct
 {
     deque *snk;
-    unsigned len;
+    int len;
     vector direction;
     data prevcell;
 } Snake;
@@ -24,47 +28,85 @@ typedef struct gd
     Snake *S;
     data food;
 
-    Snake *(*create)(void);
+    Snake *(*create)(struct gd *);
     void (*delete)(Snake *);
     
-    void (*mv)(Snake *);
+    void (*mv)(struct gd *);
     void (*grow)(Snake *);
     int (*checkcol)(struct gd *);
-    void (*genfood)(struct gd *);
+    int (*genfood)(struct gd *);
 
     unsigned score;
-    unsigned fieldY, fieldX;
+
+    Level *curlevel;
 } GameData;
 
-/* createSnake: creates a snake in a left upper corner with size of 3, directed to the right */
-Snake *createSnake(void)
+Snake *createSnake(GameData *);
+vector calculateVector(GameData *, Snake *);
+
+void deleteSnake(Snake *);
+
+void moveSnake(GameData *);
+void growSnake(Snake *);
+int generateFood(GameData *);
+
+int isSnakeCollision(GameData *);
+int isWallCollision(GameData *);
+int isCollision(GameData *);
+
+/* createSnake: creates a snake according to information in level struct */
+Snake *createSnake(GameData *gd)
 {
+    if (!gd->curlevel) return NULL;
+    
     Snake *ret = malloc(sizeof(Snake));
 
-    ret->len = 3;
-    ret->direction.y = 0;
-    ret->direction.x = 1;
+    ret->snk = initDeque();
+    ret->len = gd->curlevel->snkncells;
+    
+    for (int i = 0; i < ret->len; i++)
+    {
+	prepend(ret->snk, gd->curlevel->snkcells[i]);
+    }
+    
+    ret->direction = calculateVector(gd, ret);
     ret->prevcell.y = 0;
     ret->prevcell.x = 0;
-
-    ret->snk = initDeque();
-
-    data app = {1, 1};
-    for (int i = 1; i < 4; i++)
-    {
-	prepend(ret->snk, app);
-	(app.x)++;
-    }
-
+    
     return ret;
 }
 
-void moveSnake(Snake *S)
+vector calculateVector(GameData *gd, Snake *S)
 {
+    dnptr head = S->snk->head;
+    
+    vector ret;
+    if (S->len > 1) // more than one snk cell - vector is calculatable
+    {
+	ret.y = head->d->y - head->next->d->y;
+	ret.x = head->d->x - head->next->d->x;
+    }
+    else // one cell - vector is uncalculatable, defaulting to UP direction
+    {
+	ret.y = -1;
+	ret.x = 0;
+    }
+
+    int flag = 0;
+    
+    return ret;
+}
+
+void moveSnake(GameData *gd)
+{
+    Snake *S = gd->S;
+    
     data newHead = {S->snk->head->d->y, S->snk->head->d->x};
     newHead.y += (S->direction).y;
     newHead.x += (S->direction).x;
-
+    if (newHead.y < 0) newHead.y = gd->curlevel->lvy - 1;
+    if (newHead.x < 0) newHead.x = gd->curlevel->lvx - 1;
+    
     data *toFree = popTail(S->snk);
     S->prevcell.y = toFree->y;
     S->prevcell.x = toFree->x;
@@ -76,20 +118,36 @@ void moveSnake(Snake *S)
 void growSnake(Snake *S)
 {
     append(S->snk, S->prevcell);
+    (S->len)++;
 }
 
-/* isCollision: checks whether there is a collision of snake cells */
-int isCollision(GameData *gd)
+/* isSnakeCollision: checks whether there is a collision of snake cells */
+int isSnakeCollision(GameData *gd)
 {
-    data head = {gd->S->snk->head->d->y, gd->S->snk->head->d->x};
-    if (head.y < 1 || head.x < 1 || head.y >= gd->fieldY - 1 || head.x >= gd->fieldX - 1) return 1;
-    
-    for (dnptr cell = gd->S->snk->head->next; cell; cell = cell->next)
+    dnptr head = gd->S->snk->head;
+    for (dnptr cell = head->next; cell; cell = cell->next)
     {
-	if (head.y == cell->d->y && head.x == cell->d->x)
-	    return 2;
+	if (head->d->y == cell->d->y && head->d->x == cell->d->x)
+	    return 1;
     }
     return 0;
+}
+
+int isWallCollision(GameData *gd)
+{
+    data *head = gd->S->snk->head->d;
+
+    for (int i = 0; i < gd->curlevel->ncells; i++)
+    {
+	if (head->y == gd->curlevel->cells[i].y && head->x == gd->curlevel->cells[i].x)
+	    return 1;
+    }
+    return 0;
+}
+
+int isCollision(GameData *gd)
+{
+    return isSnakeCollision(gd) || isWallCollision(gd);
 }
 
 void deleteSnake(Snake *S)
@@ -101,27 +159,44 @@ void deleteSnake(Snake *S)
     free(S);
 }
 
-int notInSnake(deque *s, unsigned y, unsigned x)
+int generateFood(GameData *gd)
 {
-    for (dnptr cell = s->head; cell; cell = cell->next)
+    int nempty = gd->curlevel->lvy * gd->curlevel->lvx - gd->curlevel->ncells - gd->S->len;
+    if (!nempty) return -1; // basically a game-over
+
+    data *empty = malloc(nempty * sizeof(data));
+    int cempty = 0;
+    int flag = 0;
+
+    for (int i = 0; i < gd->curlevel->lvy; i++)
     {
-	if (cell->d->y == y && cell->d->x == x)
-	    return 0;
+	for (int j = 0; j < gd->curlevel->lvx; j++)
+	{
+	    flag = 1; // no collisions yet
+	    for (int k = 0; k < gd->curlevel->ncells && flag; k++)
+	    {
+		if (i == gd->curlevel->cells[k].y && j == gd->curlevel->cells[k].x)
+		    flag = 0;
+	    }
+	    for (dnptr snkc = gd->S->snk->head; snkc && flag; snkc = snkc->next)
+	    {
+		if (i == snkc->d->y && j == snkc->d->x)
+		    flag = 0;
+	    }
+	    if (flag)
+	    {
+		empty[cempty].y = i;
+		empty[cempty].x = j;
+		cempty++;
+	    }
+	}
     }
 
-    return 1;
-}
+    int choice = rand() % nempty;
+    gd->food.y = empty[choice].y;
+    gd->food.x = empty[choice].x;
+    free(empty);
 
-void generateFood(GameData *gd)
-{
-    unsigned y, x;
-    do
-    {
-	y = 1 + rand() % (gd->fieldY - 2);
-	x = 1 + rand() % (gd->fieldX - 2);
-    } while (!notInSnake(gd->S->snk, y, x));
-
-    gd->food.y = y;
-    gd->food.x = x;    
+    return 0;
 }
 #endif
