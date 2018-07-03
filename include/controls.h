@@ -68,7 +68,7 @@ int gameLoop(WindowHandle **wins, void *data)
     wgetch(wins[1]->wptr);
 
     gd->delete(gd->S);
-    
+    freeLevel(&(gd->curlevel));
     return retval;
 }
 

@@ -88,6 +88,16 @@ Level *readLevel(char *filename)
     return ret;
 }
 
+void freeLevel(Level **lev)
+{
+    free((*lev)->name);
+    free((*lev)->author);
+    free((*lev)->cells);
+    free((*lev)->snkcells);
+    free(*lev);
+    
+    *lev = NULL;
+}
 int writeLevel(Level *lev, char *filename)
 {
     FILE *write = fopen(filename, "wb");
