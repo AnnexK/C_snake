@@ -6,10 +6,12 @@
 #include "snake.h"
 #include "windows.h"
 
+#define GAME_BASE_SPEED 1000
+#define GAME_SPEED_DEC 75
 
 int gameLoop(WindowHandle **wins, void *data)
 {
-    wtimeout(wins[0]->wptr, 1000); //ncurses
+    wtimeout(wins[0]->wptr, GAME_BASE_SPEED); //ncurses
     GameData *gd = data;
 
     gd->S = gd->create(gd);
@@ -55,7 +57,11 @@ int gameLoop(WindowHandle **wins, void *data)
 	{
 	    gd->grow(gd->S);
 	    gd->score += 10;
+	    gd->foodEaten += 1;
+
+	    wtimeout(wins[0]->wptr, GAME_BASE_SPEED - (gd->foodEaten / 5) * GAME_SPEED_DEC);
 	    if (retval = gd->genfood(gd)) break;
+	    
 	}
     }
 

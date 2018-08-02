@@ -30,7 +30,7 @@ void display_aux_game(WindowHandle *this, void *data)
     werase(this->wptr);
     GameData *gd = data;
 
-    mvwprintw(this->wptr, 0, 0, "Snake Demo\tScore: %u", gd->score);
+    mvwprintw(this->wptr, 0, 0, "Snake Demo\tScore: %u\tFood eaten: %u", gd->score, gd->foodEaten);
     wrefresh(this->wptr);
 }
 

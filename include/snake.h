@@ -37,7 +37,8 @@ typedef struct gd
     int (*genfood)(struct gd *);
 
     unsigned score;
-
+    unsigned foodEaten;
+    
     Level *curlevel;
 } GameData;
 
@@ -105,7 +106,10 @@ void moveSnake(GameData *gd)
     newHead.y += (S->direction).y;
     newHead.x += (S->direction).x;
     if (newHead.y < 0) newHead.y = gd->curlevel->lvy - 1;
+    else if (newHead.y >= gd->curlevel->lvy) newHead.y = 0;
+    
     if (newHead.x < 0) newHead.x = gd->curlevel->lvx - 1;
+    else if (newHead.x >= gd->curlevel->lvx) newHead.x = 0;
     
     data *toFree = popTail(S->snk);
     S->prevcell.y = toFree->y;

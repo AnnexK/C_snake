@@ -76,10 +76,11 @@ void initcurses(void)
     Game.gamedata->mv = moveSnake;
     Game.gamedata->grow = growSnake;
     Game.gamedata->checkcol = isCollision;
+    Game.gamedata->foodEaten = 0;
 
     Game.gamedata->genfood = generateFood;
 
-    Game.gamedata->curlevel = readLevel("box.slv");
+    Game.gamedata->curlevel = readLevel("blank.slv");
 }
 
 int exitcurses(void)
